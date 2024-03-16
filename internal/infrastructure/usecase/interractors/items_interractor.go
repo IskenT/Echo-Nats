@@ -3,6 +3,7 @@ package interactors
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"rest_clickhouse/internal/api"
 	"rest_clickhouse/internal/infrastructure/queue"
 	natsClient "rest_clickhouse/internal/infrastructure/queue/nats"
@@ -58,7 +59,7 @@ func (i *itemsInteractor) GetList() ([]*repository.ItemModel, error) {
 			itemsBytes, _ := json.Marshal(items)
 			i.redis.Set(itemCache, interface{}(itemsBytes), time.Minute).Err()
 		}
-
+		fmt.Println(`1111111`)
 		return items, err
 	}
 

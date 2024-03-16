@@ -3,51 +3,57 @@ package configs
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"log"
+	"sync"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
 	HttpServer struct {
-		Port        string `json:"port"`
-		MetricsPort string `json:"metrics_port"`
+		Port        string `envconfig:"HTTP_ADDR"`
+		MetricsPort string `envconfig:"METRICS_PORT"`
 	}
 
 	Postgres struct {
-		User         string `json:"user"`
-		Password     string `json:"password"`
-		Host         string `json:"host"`
-		Port         string `json:"port"`
-		DBName       string `json:"db_name"`
-		SSLMode      string `json:"ssl_mode"`
-		MaxOpenConns int    `json:"maxOpenConns"`
-		MaxIdleConns int    `json:"maxIdleConns"`
-	}
-
-	Logger struct {
-		Lvl string `json:"lvl"`
+		User         string `envconfig:"POSTGRES_USER"`
+		Password     string `envconfig:"POSTGRES_PASSWORD"`
+		Host         string `envconfig:"POSTGRES_HOST"`
+		Port         string `envconfig:"POSTGRES_PORT"`
+		DBName       string `envconfig:"POSTGRES_DB"`
+		SSLMode      string `envconfig:"POSTGRES_SSLMODE"`
+		MaxOpenConns int    `envconfig:"POSTGRES_MAX_OPEN_CONNS"`
+		MaxIdleConns int    `envconfig:"POSTGRES_MAX_IDLE_CONNS"`
 	}
 
 	Redis struct {
-		Host string `json:"host"`
-		Port string `json:"port"`
+		Host string `envconfig:"REDIS_HOST"`
+		Port string `envconfig:"REDIS_PORT"`
 	}
 }
 
-func LoadConfig(path string) (*Config, error) {
-	var config *Config
+var (
+	once sync.Once
+)
 
-	configFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
+func LoadConfig() (*Config, error) {
+	var config Config
 
-	jsonParser := json.NewDecoder(configFile)
-	err = jsonParser.Decode(&config)
-	if err != nil {
-		return nil, err
-	}
+	once.Do(func() {
+		err := envconfig.Process("", &config)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	return config, nil
+		configBytes, err := json.MarshalIndent(config, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Configuration:", string(configBytes))
+	})
+
+	return &config, nil
 }
 
 func (c *Config) GetPgDsn() string {

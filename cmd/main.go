@@ -15,10 +15,10 @@ import (
 	"syscall"
 )
 
-const configPath = "configs/config.json"
+//const configPath = "C:/Users/User/RestClickhouseNats/configs/config.json"
 
 func main() {
-	cnf, err := configs.LoadConfig(configPath)
+	cnf, err := configs.LoadConfig()
 	if err != nil {
 		log.Panic(err)
 	}

@@ -8,7 +8,7 @@ import (
 	"rest_clickhouse/internal/infrastructure/http"
 	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
 	"rest_clickhouse/internal/infrastructure/queue"
-	"rest_clickhouse/internal/infrastructure/queue/nats"
+	natsClient "rest_clickhouse/internal/infrastructure/queue/nats"
 	postgres "rest_clickhouse/pkg/db"
 	"rest_clickhouse/pkg/logger"
 	"rest_clickhouse/pkg/logger/zerolog"
@@ -38,7 +38,7 @@ func ProvidePostgres(cnf *configs.Config, logger logger.Logger) (*postgres.DB, f
 }
 
 func ProvideConsoleLogger(cnf *configs.Config) (logger.Logger, error) {
-	return zerolog.NewZeroLog(os.Stderr, cnf.Logger.Lvl)
+	return zerolog.NewZeroLog(os.Stderr)
 }
 
 func ProvideRedis(cnf *configs.Config) (*redis.Client, error) {

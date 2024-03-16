@@ -13,7 +13,7 @@ type ZeroLogWrapper struct {
 	log zerolog.Logger
 }
 
-func NewZeroLog(logWriter io.Writer, logLevel string) (*ZeroLogWrapper, error) {
+func NewZeroLog(logWriter io.Writer) (*ZeroLogWrapper, error) {
 	ioWriter := zerolog.ConsoleWriter{
 		Out:        logWriter,
 		TimeFormat: time.RFC3339,
@@ -22,7 +22,7 @@ func NewZeroLog(logWriter io.Writer, logLevel string) (*ZeroLogWrapper, error) {
 		},
 	}
 
-	lvl, err := zerolog.ParseLevel(logLevel)
+	lvl, err := zerolog.ParseLevel(zerolog.ErrorLevel.String())
 	if err != nil {
 		return nil, err
 	}

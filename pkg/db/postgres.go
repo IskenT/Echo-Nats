@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"rest_clickhouse/configs"
 	"rest_clickhouse/pkg/logger"
+
+	_ "github.com/lib/pq"
 )
 
 type DB struct {
@@ -12,6 +14,8 @@ type DB struct {
 }
 
 func NewDBConnection(cnf *configs.Config, log logger.Logger) (*DB, error) {
+	a := cnf.GetPgDsn()
+	_ = a
 	db, err := sql.Open("postgres", cnf.GetPgDsn())
 	if err != nil {
 		return nil, err
