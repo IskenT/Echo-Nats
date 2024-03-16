@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"net/http"
 	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
 	"rest_clickhouse/pkg/logger"
 
@@ -37,7 +38,9 @@ func NewEchoHTTPServer(
 }
 
 func (s *EchoHTTPServer) Start() {
-
+	s.echo.GET("/alive", func(c echo.Context) error {
+		return c.String(http.StatusOK, "I am alive")
+	})
 	s.echo.POST("/items/create/:campaignId", s.handleCreateItem)
 	s.echo.GET("/items/list", s.handleGetItems)
 	s.echo.DELETE("/item/remove/:id/:campaignId", s.handleRemoveItem)

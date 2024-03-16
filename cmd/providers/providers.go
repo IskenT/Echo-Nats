@@ -52,7 +52,7 @@ func ProvideRedis(cnf *configs.Config) (*redis.Client, error) {
 }
 
 func ProvideQueue(cnf *configs.Config) (queue.PubSub, error) {
-	nc, err := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(fmt.Sprintf("nats://%s:4222", os.Getenv("NATS_HOST")))
 	if err != nil {
 		return nil, err
 	}
