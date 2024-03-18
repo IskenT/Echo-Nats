@@ -12,17 +12,20 @@ import (
 	"github.com/go-redis/redis"
 )
 
+var (
+	ErrGoodNotExist    = errors.New("good not exist")
+	ErrProjectNotExist = errors.New("project not exist")
+	ErrOnUpdateGood    = errors.New("error when update good")
+)
+
+const redisGoodPostfix = "good"
+
 type GoodsRepository struct {
 	db          *postgres.DB
 	redisClient *redis.Client
 	mu          sync.RWMutex
 	logger      logger.Logger
 }
-
-var GoodNotExistError = errors.New("good not exist")
-var ProjectNotExistError = errors.New("good not exist")
-
-const redisGoodPostfix = "good"
 
 func NewGoodsRepository(db *postgres.DB, redisClient *redis.Client, logger logger.Logger) repository.GoodsRepository {
 	return &GoodsRepository{
@@ -41,7 +44,7 @@ func (r *GoodsRepository) Create(good *repository.GoodModel) (*repository.GoodMo
 	}
 
 	if !isGoodExist {
-		return nil, ProjectNotExistError
+		return nil, ErrProjectNotExist
 	}
 
 	query := "select max(priority) FROM goods"
@@ -60,9 +63,9 @@ func (r *GoodsRepository) Create(good *repository.GoodModel) (*repository.GoodMo
 	return r.getGoodById(good.Id, good.ProjectId)
 }
 
-func (r *GoodsRepository) GetList(limit, offset int) (repository.GoodModelList, error) {
+func (r *GoodsRepository) GetList(limit, offset int) (*repository.GoodModelList, error) {
 	r.logger.Info("get goods")
-	var goodListModels repository.GoodModelList
+	goodListModels := &repository.GoodModelList{}
 	goodModels := make([]*repository.GoodModel, 0)
 
 	goodQuery := "SELECT id, project_id, name, description, priority, removed, created_at FROM goods ORDER BY id OFFSET $1 LIMIT COALESCE(NULLIF($2, 0), 10)"
@@ -83,7 +86,7 @@ func (r *GoodsRepository) GetList(limit, offset int) (repository.GoodModelList, 
 			&goodModel.CreatedAt,
 		)
 		if err != nil {
-			return repository.GoodModelList{}, err
+			return nil, err
 		}
 		goodModels = append(goodModels, goodModel)
 	}
@@ -106,7 +109,7 @@ func (r *GoodsRepository) Remove(good *repository.GoodModel) (*repository.GoodMo
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	invalidateKey := fmt.Sprintf("%s-%s", redisGoodPostfix, string(good.Id))
+	invalidateKey := fmt.Sprintf("%s-%d", redisGoodPostfix, good.Id)
 	r.redisClient.Set(invalidateKey, good, 0)
 
 	ctx := context.Background()
@@ -123,10 +126,13 @@ func (r *GoodsRepository) Remove(good *repository.GoodModel) (*repository.GoodMo
 	}
 
 	if !isGoodExist {
-		return nil, GoodNotExistError
+		return nil, ErrGoodNotExist
 	}
 
 	_, err = tx.Exec("UPDATE goods SET removed = $1 WHERE id = $2 AND project_id = $3", good.Removed, good.Id, good.ProjectId)
+	if err != nil {
+		return nil, ErrOnUpdateGood
+	}
 
 	err = tx.Commit()
 	if err != nil {
@@ -139,12 +145,18 @@ func (r *GoodsRepository) Remove(good *repository.GoodModel) (*repository.GoodMo
 func (r *GoodsRepository) Update(good *repository.GoodModel) (*repository.GoodModel, error) {
 	r.logger.Info("update good")
 
-	var isGoodExist bool
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	exists, err := r.checkGoodExistence(good.Id, good.ProjectId)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, ErrGoodNotExist
+	}
 
-	invalidateKey := fmt.Sprintf("%s-%s", redisGoodPostfix, string(good.Id))
-	r.redisClient.Set(invalidateKey, good, 0)
+	invalidateKey := fmt.Sprintf("%s-%d", redisGoodPostfix, good.Id)
+	if err := r.redisClient.Set(invalidateKey, good, 0).Err(); err != nil {
+		return nil, err
+	}
 
 	ctx := context.Background()
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -153,32 +165,34 @@ func (r *GoodsRepository) Update(good *repository.GoodModel) (*repository.GoodMo
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ ")
-	if err != nil {
+	if _, err := tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"); err != nil {
 		return nil, err
 	}
 
-	err = tx.QueryRow("SELECT EXISTS (SELECT id FROM goods WHERE id = $1 AND project_id = $2)", good.Id, good.ProjectId).Scan(&isGoodExist)
-	if err != nil {
-		return nil, err
-	}
-
-	if !isGoodExist {
-		return nil, GoodNotExistError
-	}
-
+	var updateQuery string
 	if good.Description != "" {
-		_, err = tx.Exec("UPDATE goods SET name = $1, description = $2 WHERE id = $3 AND project_id = $4", good.Name, good.Description, good.Id, good.ProjectId)
+		updateQuery = "UPDATE goods SET name = $1, description = $2 WHERE id = $3 AND project_id = $4"
 	} else {
-		_, err = tx.Exec("UPDATE goods SET name = $1 WHERE id = $2 AND project_id = $3", good.Name, good.Id, good.ProjectId)
+		updateQuery = "UPDATE goods SET name = $1 WHERE id = $2 AND project_id = $3"
+	}
+	_, err = tx.Exec(updateQuery, good.Name, good.Description, good.Id, good.ProjectId)
+	if err != nil {
+		return nil, err
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
 	return r.getGoodById(good.Id, good.ProjectId)
+}
+
+func (r *GoodsRepository) checkGoodExistence(id, projectId int) (bool, error) {
+	var exists bool
+	if err := r.db.QueryRow("SELECT EXISTS (SELECT id FROM goods WHERE id = $1 AND project_id = $2)", id, projectId).Scan(&exists); err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func (r *GoodsRepository) getGoodById(id, projectId int) (*repository.GoodModel, error) {

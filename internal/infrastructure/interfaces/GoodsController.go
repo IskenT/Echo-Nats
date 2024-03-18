@@ -47,7 +47,7 @@ func (c *goodsController) HandleCreateGood(ctx echo.Context) error {
 	good.ProjectId = projectId
 
 	goodDTO, err := c.goodsInteractor.CreateGood(good)
-	if errors.Is(err, repository2.ProjectNotExistError) {
+	if errors.Is(err, repository2.ErrProjectNotExist) {
 		return ctx.String(http.StatusNotFound, "ProjectId not found")
 	}
 
@@ -76,7 +76,7 @@ func (c *goodsController) HandleGetGood(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, "internal error")
 	}
 
-	goodsList := api.GetGoodList(goodsModelList)
+	goodsList := api.GetGoodList(*goodsModelList)
 
 	return ctx.JSON(http.StatusOK, goodsList)
 }
@@ -98,7 +98,7 @@ func (c *goodsController) HandleRemoveGood(ctx echo.Context) error {
 	good.ProjectId = projectId
 
 	goodDTO, err := c.goodsInteractor.RemoveGood(good)
-	if errors.Is(err, repository2.GoodNotExistError) {
+	if errors.Is(err, repository2.ErrGoodNotExist) {
 		return ctx.JSON(http.StatusNotFound, api.NewErrorResponse(api.GoodNotFoundCode, api.GoodNotFoundMessage))
 	}
 
@@ -137,7 +137,7 @@ func (c *goodsController) HandleUpdateGoods(ctx echo.Context) error {
 	good.ProjectId = projectId
 
 	goodDTO, err := c.goodsInteractor.UpdateGood(good)
-	if errors.Is(err, repository2.GoodNotExistError) {
+	if errors.Is(err, repository2.ErrGoodNotExist) {
 		return ctx.JSON(http.StatusNotFound, api.NewErrorResponse(api.GoodNotFoundCode, api.GoodNotFoundMessage))
 	}
 

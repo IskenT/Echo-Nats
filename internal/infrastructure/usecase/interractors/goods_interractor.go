@@ -18,7 +18,7 @@ type GoodsInteractor interface {
 	CreateGood(good *api.Good) (*repository.GoodModel, error)
 	RemoveGood(good *api.Good) (*repository.GoodModel, error)
 	UpdateGood(good *api.Good) (*repository.GoodModel, error)
-	GetList(limit, offset int) (repository.GoodModelList, error)
+	GetList(limit, offset int) (*repository.GoodModelList, error)
 }
 
 type goodsInteractor struct {
@@ -50,7 +50,7 @@ func (i *goodsInteractor) CreateGood(good *api.Good) (*repository.GoodModel, err
 	return goodModel, err
 }
 
-func (i *goodsInteractor) GetList(limit, offset int) (repository.GoodModelList, error) {
+func (i *goodsInteractor) GetList(limit, offset int) (*repository.GoodModelList, error) {
 	cacheBytes, err := i.redis.Get(goodCache).Bytes()
 	if errors.Is(err, redis.Nil) {
 		goods, err := i.goodsRepository.GetList(limit, offset)
@@ -61,13 +61,13 @@ func (i *goodsInteractor) GetList(limit, offset int) (repository.GoodModelList, 
 		return goods, err
 	}
 
-	var goods []*repository.GoodModel
+	var goods *repository.GoodModelList
 	err = json.Unmarshal(cacheBytes, &goods)
 	if err != nil {
-		return repository.GoodModelList{}, err
+		return nil, err
 	}
 
-	return repository.GoodModelList{Goods: goods}, nil
+	return goods, nil
 }
 
 func (i *goodsInteractor) RemoveGood(good *api.Good) (*repository.GoodModel, error) {

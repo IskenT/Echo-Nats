@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// GoodModel содержит информацию о товаре.
 type GoodModel struct {
 	Id          int
 	ProjectId   int
@@ -11,19 +12,21 @@ type GoodModel struct {
 	Description string
 	Priority    int
 	Removed     bool
-	CreatedAt   time.Time
+	CreatedAt   time.Time // Время создания
 }
 
+// GoodModelList содержит список товаров и метаданные.
 type GoodModelList struct {
 	Meta  Meta
 	Goods []*GoodModel
 }
 
+// Meta содержит метаданные.
 type Meta struct {
-	Total   int
-	Removed int
-	Limit   int
-	Offset  int
+	Total   int // Общее количество элементов
+	Removed int // Количество удаленных элементов
+	Limit   int // Ограничение количества элементов в списке
+	Offset  int // Смещение для пагинации
 }
 
 func NewGoodCreateModel(projectId int, name string) *GoodModel {
@@ -54,7 +57,7 @@ func NewGoodRemoveModel(id int, projectId int) *GoodModel {
 
 type GoodsRepository interface {
 	Create(Good *GoodModel) (*GoodModel, error)
-	GetList(limit, offset int) (GoodModelList, error)
+	GetList(limit, offset int) (*GoodModelList, error)
 	Remove(good *GoodModel) (*GoodModel, error)
 	Update(good *GoodModel) (*GoodModel, error)
 }
