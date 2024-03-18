@@ -19,5 +19,5 @@ Endpoint = `http://localhost:8080/`
 
 ## A picture is worth a thousand words
 
-<img src="./images/hezzl-run.png">
+<img src="./images/hezzl-run.PNG">
 
