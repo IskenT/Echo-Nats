@@ -33,19 +33,19 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 	}
 	defer tx.Rollback()
 
-	query := "INSERT INTO Events (Id,CampaignId,Name,Description,Priority,Removed,EventTime) values ($1, $2,$3,$4,$5,$6,$7)"
+	query := "INSERT INTO Events (Id,ProjectId,Name,Description,Priority,Removed,EventTime) values ($1, $2,$3,$4,$5,$6,$7)"
 	for _, event := range r.eventModels {
 		_, err = tx.Exec(
 			query,
 			event.Id,
-			event.CampaignId,
+			event.ProjectId,
 			event.Name,
 			event.Description,
 			event.Priority,
 			event.Removed,
 			event.EventTime)
 		if err != nil {
-			//логируем но не возвращаем так как пачка может пойти назад
+
 		}
 	}
 
@@ -53,6 +53,7 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 		return err
 	}
 
+	// Очищаем список eventModels после успешного коммита.
 	r.eventModels = r.eventModels[:0]
 
 	return err

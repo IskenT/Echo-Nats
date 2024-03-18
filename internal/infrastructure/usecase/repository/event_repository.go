@@ -4,7 +4,7 @@ import "time"
 
 type EventsModel struct {
 	Id          int
-	CampaignId  int
+	ProjectId   int
 	Name        string
 	Description string
 	Priority    int
@@ -12,14 +12,14 @@ type EventsModel struct {
 	EventTime   time.Time
 }
 
-func ItemModelToEvent(itemModel ItemModel) *EventsModel {
+func GoodModelToEvent(goodModel GoodModel) *EventsModel {
 	return &EventsModel{
-		Id:          itemModel.Id,
-		CampaignId:  itemModel.CampaignId,
-		Name:        itemModel.Name,
-		Description: itemModel.Description,
-		Priority:    itemModel.Priority,
-		Removed:     itemModel.Removed,
+		Id:          goodModel.Id,
+		ProjectId:   goodModel.ProjectId,
+		Name:        goodModel.Name,
+		Description: goodModel.Description,
+		Priority:    goodModel.Priority,
+		Removed:     goodModel.Removed,
 		EventTime:   time.Now(),
 	}
 }

@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"fmt"
-	"net/http"
 	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
 	"rest_clickhouse/pkg/logger"
 
@@ -18,18 +17,18 @@ type HTTPServer interface {
 type EchoHTTPServer struct {
 	echo            *echo.Echo
 	serverPort      string
-	itemsController httpControllers.ItemsController
+	goodsController httpControllers.GoodsController
 	logger          logger.Logger
 }
 
 func NewEchoHTTPServer(
 	ServerPort string,
-	itemsController httpControllers.ItemsController,
+	goodsController httpControllers.GoodsController,
 	logger logger.Logger,
 ) *EchoHTTPServer {
 	server := &EchoHTTPServer{
 		echo:            echo.New(),
-		itemsController: itemsController,
+		goodsController: goodsController,
 		serverPort:      ServerPort,
 		logger:          logger,
 	}
@@ -38,13 +37,10 @@ func NewEchoHTTPServer(
 }
 
 func (s *EchoHTTPServer) Start() {
-	s.echo.GET("/alive", func(c echo.Context) error {
-		return c.String(http.StatusOK, "I am alive")
-	})
-	s.echo.POST("/items/create/:campaignId", s.handleCreateItem)
-	s.echo.GET("/items/list", s.handleGetItems)
-	s.echo.DELETE("/item/remove/:id/:campaignId", s.handleRemoveItem)
-	s.echo.PATCH("/item/update/:id/:campaignId", s.handleUpdateItem)
+	s.echo.POST("/goods/create/:projectId", s.handleCreateGood)
+	s.echo.GET("/goods/list/:limit/:offset", s.handleGetGoods)
+	s.echo.DELETE("/good/remove/:id/:projectId", s.handleRemoveGood)
+	s.echo.PATCH("/good/update/:id/:projectId", s.handleUpdateGood)
 
 	func() {
 		port := fmt.Sprintf(":%v", s.serverPort)
@@ -61,18 +57,18 @@ func (s *EchoHTTPServer) Stop(ctx context.Context) {
 	}
 }
 
-func (s *EchoHTTPServer) handleCreateItem(ctx echo.Context) error {
-	return s.itemsController.HandleCreateItem(ctx)
+func (s *EchoHTTPServer) handleCreateGood(ctx echo.Context) error {
+	return s.goodsController.HandleCreateGood(ctx)
 }
 
-func (s *EchoHTTPServer) handleGetItems(ctx echo.Context) error {
-	return s.itemsController.HandleGetItem(ctx)
+func (s *EchoHTTPServer) handleGetGoods(ctx echo.Context) error {
+	return s.goodsController.HandleGetGood(ctx)
 }
 
-func (s *EchoHTTPServer) handleRemoveItem(ctx echo.Context) error {
-	return s.itemsController.HandleRemoveItem(ctx)
+func (s *EchoHTTPServer) handleRemoveGood(ctx echo.Context) error {
+	return s.goodsController.HandleRemoveGood(ctx)
 }
 
-func (s *EchoHTTPServer) handleUpdateItem(ctx echo.Context) error {
-	return s.itemsController.HandleUpdateItems(ctx)
+func (s *EchoHTTPServer) handleUpdateGood(ctx echo.Context) error {
+	return s.goodsController.HandleUpdateGoods(ctx)
 }

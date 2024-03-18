@@ -1,59 +1,76 @@
 package configs
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"os"
+	"strconv"
 	"sync"
-
-	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
+	once       sync.Once
 	HttpServer struct {
-		Port        string `envconfig:"HTTP_ADDR"`
-		MetricsPort string `envconfig:"METRICS_PORT"`
+		Port        string
+		MetricsPort string
 	}
 
 	Postgres struct {
-		User         string `envconfig:"POSTGRES_USER"`
-		Password     string `envconfig:"POSTGRES_PASSWORD"`
-		Host         string `envconfig:"POSTGRES_HOST"`
-		Port         string `envconfig:"POSTGRES_PORT"`
-		DBName       string `envconfig:"POSTGRES_DB"`
-		SSLMode      string `envconfig:"POSTGRES_SSLMODE"`
-		MaxOpenConns int    `envconfig:"POSTGRES_MAX_OPEN_CONNS"`
-		MaxIdleConns int    `envconfig:"POSTGRES_MAX_IDLE_CONNS"`
+		User         string
+		Password     string
+		Host         string
+		Port         string
+		DBName       string
+		SSLMode      string
+		MaxOpenConns int
+		MaxIdleConns int
 	}
 
 	Redis struct {
-		Host string `envconfig:"REDIS_HOST"`
-		Port string `envconfig:"REDIS_PORT"`
+		Host string
+		Port string
 	}
 }
 
-var (
-	once sync.Once
-)
-
 func LoadConfig() (*Config, error) {
-	var config Config
+	cfg := &Config{}
 
-	once.Do(func() {
-		err := envconfig.Process("", &config)
-		if err != nil {
-			log.Fatal(err)
-		}
+	cfg.once.Do(func() {
+		// Initialize HTTP server configuration
+		cfg.HttpServer.Port = getEnv("HTTP_ADDR", "")
+		cfg.HttpServer.MetricsPort = getEnv("METRICS_PORT", "")
 
-		configBytes, err := json.MarshalIndent(config, "", "  ")
-		if err != nil {
-			log.Fatal(err)
-		}
+		// Initialize Postgres configuration
+		cfg.Postgres.User = getEnv("POSTGRES_USER", "")
+		cfg.Postgres.Password = getEnv("POSTGRES_PASSWORD", "")
+		cfg.Postgres.Host = getEnv("POSTGRES_HOST", "")
+		cfg.Postgres.Port = getEnv("POSTGRES_PORT", "")
+		cfg.Postgres.DBName = getEnv("POSTGRES_DB", "")
+		cfg.Postgres.SSLMode = getEnv("POSTGRES_SSLMODE", "")
+		cfg.Postgres.MaxOpenConns = getEnvAsInt("POSTGRES_MAX_OPEN_CONNS", 10)
+		cfg.Postgres.MaxIdleConns = getEnvAsInt("POSTGRES_MAX_IDLE_CONNS", 10)
 
-		fmt.Println("Configuration:", string(configBytes))
+		// Initialize Redis configuration
+		cfg.Redis.Host = getEnv("REDIS_HOST", "")
+		cfg.Redis.Port = getEnv("REDIS_PORT", "")
 	})
+	return cfg, nil
+}
 
-	return &config, nil
+func getEnv(key string, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+
+	return defaultVal
+}
+
+func getEnvAsInt(name string, defaultVal int) int {
+	valueStr := getEnv(name, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+
+	return defaultVal
 }
 
 func (c *Config) GetPgDsn() string {

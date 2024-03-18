@@ -1,0 +1,8 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS PROJECTS (
+    id serial NOT NULL,
+    name VARCHAR(256) NOT NULL,
+
+    PRIMARY KEY(id)
+    );
+COMMIT;

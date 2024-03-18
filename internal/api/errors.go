@@ -6,8 +6,8 @@ type ErrorResponse struct {
 	Details interface{} `json:"details"`
 }
 
-const ItemNotFoundMessage = "errors.item.notFound"
-const ItemNotFoundCode = 3
+const GoodNotFoundMessage = "errors.good.notFound"
+const GoodNotFoundCode = 3
 
 func NewErrorResponse(code int, message string, details ...interface{}) ErrorResponse {
 	return ErrorResponse{

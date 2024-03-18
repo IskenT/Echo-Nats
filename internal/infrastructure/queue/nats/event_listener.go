@@ -33,14 +33,14 @@ func (listen *EventListener) ListenTopic() {
 	unsub, err := listen.sub.Sub(EventTopicName, func(m *nats.Msg) {
 		listen.logger.Info("Received a message: %s\n", string(m.Data))
 
-		var itemModel repository.ItemModel
-		err := json.Unmarshal(m.Data, &itemModel)
+		var goodModel repository.GoodModel
+		err := json.Unmarshal(m.Data, &goodModel)
 
 		if err != nil {
 			listen.logger.Error(err)
 		}
 
-		EventModel := repository.ItemModelToEvent(itemModel)
+		EventModel := repository.GoodModelToEvent(goodModel)
 		err = listen.eventsRepository.Create(EventModel)
 		if err != nil {
 			listen.logger.Error(err)

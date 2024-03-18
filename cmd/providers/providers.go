@@ -20,8 +20,8 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func ProvideHTTPServer(config *configs.Config, itemsController httpControllers.ItemsController, logger logger.Logger) http.HTTPServer {
-	return http.NewEchoHTTPServer(config.HttpServer.Port, itemsController, logger)
+func ProvideHTTPServer(config *configs.Config, goodsController httpControllers.GoodsController, logger logger.Logger) http.HTTPServer {
+	return http.NewEchoHTTPServer(config.HttpServer.Port, goodsController, logger)
 }
 
 func ProvidePostgres(cnf *configs.Config, logger logger.Logger) (*postgres.DB, func(), error) {

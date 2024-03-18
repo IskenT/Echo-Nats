@@ -7,6 +7,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
       - backend-network
     volumes:
@@ -44,7 +46,7 @@ services:
       - "19000:9000"
     networks:
       - backend-network
-
+      
   hezzl-backend:
     build: .
     container_name: "hezzl-rest-api"
@@ -52,21 +54,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend-network
-    environment:
-      - HTTP_ADDR=8080
-      - METRICS_PORT=3030
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_HOST=hezzl_postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=postgres
-      - POSTGRES_SSLMODE=disable
-      - POSTGRES_MAX_OPEN_CONNS=20
-      - POSTGRES_MAX_IDLE_CONNS=10
-      - REDIS_HOST=hezzl_redis
-      - REDIS_PORT=6379
-      - NATS_HOST=nats
+      - backend-network    
     depends_on:
       - postgresql
 

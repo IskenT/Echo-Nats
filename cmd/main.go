@@ -13,9 +13,15 @@ import (
 	repository2 "rest_clickhouse/internal/infrastructure/repository"
 	interactors "rest_clickhouse/internal/infrastructure/usecase/interractors"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
-//const configPath = "C:/Users/User/RestClickhouseNats/configs/config.json"
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Panic("No .env file found")
+	}
+}
 
 func main() {
 	cnf, err := configs.LoadConfig()
@@ -38,23 +44,22 @@ func main() {
 		log.Panic(err)
 	}
 
-	//nats
 	queue, err := providers.ProvideQueue(cnf)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	itemsRepository := repository2.NewItemsRepository(db, redisClient, logger)
-	itemsInteractor := interactors.NewItemsInteractor(itemsRepository, redisClient, queue, logger)
-	itemController := httpControllers.NewItemsController(itemsInteractor, logger)
+	goodsRepository := repository2.NewGoodsRepository(db, redisClient, logger)
+	goodsInteractor := interactors.NewGoodsInteractor(goodsRepository, redisClient, queue, logger)
+	goodController := httpControllers.NewGoodsController(goodsInteractor, logger)
 
 	clickHouseConn := providers.ProvideClickhouse(cnf)
 	logRepo := repository2.NewLogsRepository(clickHouseConn)
 	eventListener := queue2.NewEventListener(ctx, queue, logRepo, logger)
 	go eventListener.ListenTopic()
 
-	server := providers.ProvideHTTPServer(cnf, itemController, logger)
+	server := providers.ProvideHTTPServer(cnf, goodController, logger)
 
 	go func() {
 		sigs := make(chan os.Signal, 1)
@@ -70,7 +75,5 @@ func main() {
 		fmt.Println("Stop Server")
 		server.Stop(ctx)
 	}()
-
 	server.Start()
-
 }
