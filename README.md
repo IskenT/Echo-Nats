@@ -7,12 +7,16 @@
 ## Инструкция к запуску
 Для запуска проекта требуется docker-compose.
 
-`docker-compose up -d`
+`docker-compose up -d` (--volumes) (--remove-orphans)
 
 Далее запустите миграции. 
 
 `make postgres-up`
 
+Запустите проект.
+
+`make run`
+
 При необходимости в Docker-compose.yml могут быть добавлены клиентские службы для Clickhouse
 ## API
-Endpoint = `http://localhost:8080/api/v1`
+Endpoint = `http://localhost:8080/`
