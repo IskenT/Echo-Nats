@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"rest_clickhouse/internal/infrastructure/usecase/repository"
@@ -117,8 +118,16 @@ func (r *GoodsRepository) Remove(good *repository.GoodModel) (*repository.GoodMo
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
-	tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ ")
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			r.logger.ErrorF("rollback error")
+		}
+	}()
+
+	_, err = tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+	if err != nil {
+		return nil, err
+	}
 
 	err = tx.QueryRow("SELECT EXISTS (SELECT id FROM goods WHERE id = $1 AND project_id = $2)", good.Id, good.ProjectId).Scan(&isGoodExist)
 	if err != nil {
@@ -163,7 +172,11 @@ func (r *GoodsRepository) Update(good *repository.GoodModel) (*repository.GoodMo
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			r.logger.ErrorF("rollback error")
+		}
+	}()
 
 	if _, err := tx.Exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ"); err != nil {
 		return nil, err

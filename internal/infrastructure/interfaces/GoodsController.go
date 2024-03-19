@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"rest_clickhouse/internal/api"
 	repository2 "rest_clickhouse/internal/infrastructure/repository"
-	interactors "rest_clickhouse/internal/infrastructure/usecase/interractors"
+	"rest_clickhouse/internal/infrastructure/usecase/interactors"
 	"rest_clickhouse/pkg/logger"
 	"strconv"
 

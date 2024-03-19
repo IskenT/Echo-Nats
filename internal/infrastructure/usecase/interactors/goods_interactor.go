@@ -56,7 +56,9 @@ func (i *goodsInteractor) GetList(limit, offset int) (*repository.GoodModelList,
 		goods, err := i.goodsRepository.GetList(limit, offset)
 		if err == nil {
 			goodsBytes, _ := json.Marshal(goods)
-			i.redis.Set(goodCache, interface{}(goodsBytes), time.Minute).Err()
+			if setErr := i.redis.Set(goodCache, interface{}(goodsBytes), time.Minute).Err(); setErr != nil {
+				return nil, setErr
+			}
 		}
 		return goods, err
 	}

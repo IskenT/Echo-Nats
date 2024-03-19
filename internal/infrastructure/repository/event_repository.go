@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"rest_clickhouse/internal/infrastructure/usecase/repository"
+	"rest_clickhouse/pkg/logger"
 )
 
 const eventsPackCount = 100
@@ -11,12 +13,14 @@ const eventsPackCount = 100
 type EventsRepository struct {
 	clickHouseConn *sql.DB
 	eventModels    []*repository.EventsModel
+	logger         logger.Logger
 }
 
-func NewLogsRepository(clickHouseConn *sql.DB) repository.EventsRepository {
+func NewLogsRepository(clickHouseConn *sql.DB, logger logger.Logger) repository.EventsRepository {
 	return &EventsRepository{
 		clickHouseConn: clickHouseConn,
 		eventModels:    make([]*repository.EventsModel, 0),
+		logger:         logger,
 	}
 }
 
@@ -31,7 +35,12 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			r.logger.ErrorF("rollback error")
+		}
+	}()
 
 	query := "INSERT INTO Events (Id,ProjectId,Name,Description,Priority,Removed,EventTime) values ($1, $2,$3,$4,$5,$6,$7)"
 	for _, event := range r.eventModels {
@@ -45,7 +54,7 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 			event.Removed,
 			event.EventTime)
 		if err != nil {
-
+			return err
 		}
 	}
 
