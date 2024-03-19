@@ -6,3 +6,6 @@ postgres-up:
 
 postgres-down:
 	migrate -source file:./migrations -database postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable down
+
+lint:
+	golangci-lint run
