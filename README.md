@@ -3,7 +3,6 @@
 ![Repository Top Language](https://img.shields.io/github/languages/top/IskenT/Echo-Nats)
 ![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/quality/g/IskenT/Echo-Nats/cmd/main)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/IskenT/Echo-Nats)
-[![Codacy Grade](https://img.shields.io/codacy/grade/c9467ed47e064b1981e53862d0286d65)](https://www.codacy.com/gh/IskenT/Echo-Nats)
 ![Github Repository Size](https://img.shields.io/github/repo-size/IskenT/Echo-Nats)
 ![Github Open Issues](https://img.shields.io/github/issues/IskenT/Echo-Nats)
 ![License](https://img.shields.io/badge/license-MIT-green)
