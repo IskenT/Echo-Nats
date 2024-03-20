@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -23,6 +22,7 @@ type Config struct {
 		SSLMode      string
 		MaxOpenConns int
 		MaxIdleConns int
+		DSN          string
 	}
 
 	Redis struct {
@@ -48,6 +48,7 @@ func LoadConfig() (*Config, error) {
 		cfg.Postgres.SSLMode = getEnv("POSTGRES_SSLMODE", "")
 		cfg.Postgres.MaxOpenConns = getEnvAsInt("POSTGRES_MAX_OPEN_CONNS", 10)
 		cfg.Postgres.MaxIdleConns = getEnvAsInt("POSTGRES_MAX_IDLE_CONNS", 10)
+		cfg.Postgres.DSN = getEnv("POSTGRES_DSN", "")
 
 		// Initialize Redis configuration
 		cfg.Redis.Host = getEnv("REDIS_HOST", "")
@@ -71,14 +72,4 @@ func getEnvAsInt(name string, defaultVal int) int {
 	}
 
 	return defaultVal
-}
-
-func (c *Config) GetPgDsn() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		c.Postgres.Host,
-		c.Postgres.Port,
-		c.Postgres.User,
-		c.Postgres.Password,
-		c.Postgres.DBName,
-		c.Postgres.SSLMode)
 }

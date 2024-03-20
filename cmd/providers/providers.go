@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -24,8 +25,8 @@ func ProvideHTTPServer(config *configs.Config, goodsController httpControllers.G
 	return http.NewEchoHTTPServer(config.HttpServer.Port, goodsController, logger)
 }
 
-func ProvidePostgres(cnf *configs.Config, logger logger.Logger) (*postgres.DB, func(), error) {
-	repo, err := postgres.NewDBConnection(cnf, logger)
+func ProvidePostgres(ctx context.Context, cnf *configs.Config, logger logger.Logger) (*postgres.DB, func(), error) {
+	repo, err := postgres.NewDBConnection(ctx, cnf, logger)
 	if err != nil {
 		return nil, nil, err
 	}

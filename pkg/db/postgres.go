@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"rest_clickhouse/configs"
 	"rest_clickhouse/pkg/logger"
@@ -13,10 +14,8 @@ type DB struct {
 	log logger.Logger
 }
 
-func NewDBConnection(cnf *configs.Config, log logger.Logger) (*DB, error) {
-	a := cnf.GetPgDsn()
-	_ = a
-	db, err := sql.Open("postgres", cnf.GetPgDsn())
+func NewDBConnection(ctx context.Context, cnf *configs.Config, log logger.Logger) (*DB, error) {
+	db, err := sql.Open("postgres", cnf.Postgres.DSN)
 	if err != nil {
 		return nil, err
 	}

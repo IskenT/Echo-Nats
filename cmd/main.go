@@ -18,36 +18,44 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(fmt.Errorf("failed to load .env file: %w", err))
+		return fmt.Errorf("failed to load .env file: %w", err)
 	}
 
 	cnf, err := configs.LoadConfig()
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to load config: %w", err))
+		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	logger, err := providers.ProvideConsoleLogger(cnf)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to provide console logger: %w", err))
+		return fmt.Errorf("failed to provide console logger: %w", err)
 	}
 
-	db, closeDB, err := providers.ProvidePostgres(cnf, logger)
+	db, closeDB, err := providers.ProvidePostgres(ctx, cnf, logger)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to provide postgres: %w", err))
+		return fmt.Errorf("failed to provide postgres: %w", err)
 	}
 
 	redisClient, err := providers.ProvideRedis(cnf)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to provide redis client: %w", err))
+		return fmt.Errorf("failed to provide redis client: %w", err)
 	}
 
 	queue, err := providers.ProvideQueue(cnf)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to provide queue: %w", err))
+		return fmt.Errorf("failed to provide queue: %w", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
 	goodsRepository := repository.NewGoodsRepository(db, redisClient, logger)
 	goodsInteractor := interactors.NewGoodsInteractor(goodsRepository, redisClient, queue, logger)
 	goodController := httpControllers.NewGoodsController(goodsInteractor, logger)
@@ -75,4 +83,6 @@ func main() {
 	}()
 
 	server.Start()
+
+	return nil
 }
