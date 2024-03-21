@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"rest_clickhouse/cmd/providers"
 	"rest_clickhouse/configs"
-	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
+	goods_service "rest_clickhouse/internal/infrastructure/http"
 	eventQueue "rest_clickhouse/internal/infrastructure/queue/nats"
 	repository "rest_clickhouse/internal/infrastructure/repository"
 	"rest_clickhouse/internal/infrastructure/usecase/interactors"
@@ -56,16 +56,16 @@ func run() error {
 		return fmt.Errorf("failed to provide queue: %w", err)
 	}
 
-	goodsRepository := repository.NewGoodsRepository(db, redisClient, logger)
+	goodsRepository := repository.NewGoodsRepository(ctx, db, redisClient, logger)
 	goodsInteractor := interactors.NewGoodsInteractor(goodsRepository, redisClient, queue, logger)
-	goodController := httpControllers.NewGoodsController(goodsInteractor, logger)
+	goodService := goods_service.NewGoodsService(goodsInteractor, logger)
 
 	clickHouseConn := providers.ProvideClickhouse(cnf)
 	logRepo := repository.NewLogsRepository(clickHouseConn, logger)
 	eventListener := eventQueue.NewEventListener(ctx, queue, logRepo, logger)
 	go eventListener.ListenTopic()
 
-	server := providers.ProvideHTTPServer(cnf, goodController, logger)
+	server := providers.ProvideHTTPServer(cnf, goodService, logger)
 
 	go func() {
 		sigs := make(chan os.Signal, 1)

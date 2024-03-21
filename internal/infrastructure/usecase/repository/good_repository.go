@@ -1,18 +1,19 @@
 package repository
 
 import (
+	"context"
 	"time"
 )
 
 // GoodModel содержит информацию о товаре.
 type GoodModel struct {
-	Id          int
-	ProjectId   int
-	Name        string
-	Description string
-	Priority    int
-	Removed     bool
-	CreatedAt   time.Time // Время создания
+	Id          int       `db:"id"`
+	ProjectId   int       `db:"project_id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	Priority    int       `db:"priority"`
+	Removed     bool      `db:"removed"`
+	CreatedAt   time.Time `db:"created_at"`
 }
 
 // GoodModelList содержит список товаров и метаданные.
@@ -56,8 +57,8 @@ func NewGoodRemoveModel(id int, projectId int) *GoodModel {
 }
 
 type GoodsRepository interface {
-	Create(Good *GoodModel) (*GoodModel, error)
-	GetList(limit, offset int) (*GoodModelList, error)
-	Remove(good *GoodModel) (*GoodModel, error)
-	Update(good *GoodModel) (*GoodModel, error)
+	Create(ctx context.Context, Good *GoodModel) (*GoodModel, error)
+	GetList(ctx context.Context, limit, offset int) (*GoodModelList, error)
+	Remove(ctx context.Context, good *GoodModel) (*GoodModel, error)
+	Update(ctx context.Context, good *GoodModel) (*GoodModel, error)
 }

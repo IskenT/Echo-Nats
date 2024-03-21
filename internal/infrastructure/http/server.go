@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"fmt"
-	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
 	"rest_clickhouse/pkg/logger"
 
 	"github.com/labstack/echo/v4"
@@ -15,22 +14,22 @@ type HTTPServer interface {
 }
 
 type EchoHTTPServer struct {
-	echo            *echo.Echo
-	serverPort      string
-	goodsController httpControllers.GoodsController
-	logger          logger.Logger
+	echo         *echo.Echo
+	serverPort   string
+	goodsService GoodsService
+	logger       logger.Logger
 }
 
 func NewEchoHTTPServer(
 	ServerPort string,
-	goodsController httpControllers.GoodsController,
+	goodsService GoodsService,
 	logger logger.Logger,
 ) *EchoHTTPServer {
 	server := &EchoHTTPServer{
-		echo:            echo.New(),
-		goodsController: goodsController,
-		serverPort:      ServerPort,
-		logger:          logger,
+		echo:         echo.New(),
+		goodsService: goodsService,
+		serverPort:   ServerPort,
+		logger:       logger,
 	}
 
 	return server
@@ -58,17 +57,17 @@ func (s *EchoHTTPServer) Stop(ctx context.Context) {
 }
 
 func (s *EchoHTTPServer) handleCreateGood(ctx echo.Context) error {
-	return s.goodsController.HandleCreateGood(ctx)
+	return s.goodsService.HandleCreateGood(ctx)
 }
 
 func (s *EchoHTTPServer) handleGetGoods(ctx echo.Context) error {
-	return s.goodsController.HandleGetGood(ctx)
+	return s.goodsService.HandleGetGood(ctx)
 }
 
 func (s *EchoHTTPServer) handleRemoveGood(ctx echo.Context) error {
-	return s.goodsController.HandleRemoveGood(ctx)
+	return s.goodsService.HandleRemoveGood(ctx)
 }
 
 func (s *EchoHTTPServer) handleUpdateGood(ctx echo.Context) error {
-	return s.goodsController.HandleUpdateGoods(ctx)
+	return s.goodsService.HandleUpdateGoods(ctx)
 }

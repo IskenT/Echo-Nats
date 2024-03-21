@@ -2,7 +2,6 @@ package configs
 
 import (
 	"os"
-	"strconv"
 	"sync"
 )
 
@@ -14,15 +13,13 @@ type Config struct {
 	}
 
 	Postgres struct {
-		User         string
-		Password     string
-		Host         string
-		Port         string
-		DBName       string
-		SSLMode      string
-		MaxOpenConns int
-		MaxIdleConns int
-		DSN          string
+		User     string
+		Password string
+		Host     string
+		Port     string
+		DBName   string
+		SSLMode  string
+		DSN      string
 	}
 
 	Redis struct {
@@ -46,8 +43,6 @@ func LoadConfig() (*Config, error) {
 		cfg.Postgres.Port = getEnv("POSTGRES_PORT", "")
 		cfg.Postgres.DBName = getEnv("POSTGRES_DB", "")
 		cfg.Postgres.SSLMode = getEnv("POSTGRES_SSLMODE", "")
-		cfg.Postgres.MaxOpenConns = getEnvAsInt("POSTGRES_MAX_OPEN_CONNS", 10)
-		cfg.Postgres.MaxIdleConns = getEnvAsInt("POSTGRES_MAX_IDLE_CONNS", 10)
 		cfg.Postgres.DSN = getEnv("POSTGRES_DSN", "")
 
 		// Initialize Redis configuration
@@ -59,15 +54,6 @@ func LoadConfig() (*Config, error) {
 
 func getEnv(key string, defaultVal string) string {
 	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-
-	return defaultVal
-}
-
-func getEnvAsInt(name string, defaultVal int) int {
-	valueStr := getEnv(name, "")
-	if value, err := strconv.Atoi(valueStr); err == nil {
 		return value
 	}
 

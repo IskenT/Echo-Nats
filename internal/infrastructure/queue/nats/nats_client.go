@@ -1,4 +1,4 @@
-package natsClient
+package nats_client
 
 import (
 	"rest_clickhouse/internal/infrastructure/queue"
@@ -11,7 +11,6 @@ type Nats struct {
 	Conn *nats.Conn
 }
 
-// NewNatsClient создает новый клиент NATS на основе переданного соединения.
 func NewNatsClient(conn *nats.Conn) queue.PubSub {
 	return &Nats{Conn: conn}
 }

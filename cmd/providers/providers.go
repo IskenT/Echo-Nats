@@ -7,9 +7,9 @@ import (
 	"os"
 	"rest_clickhouse/configs"
 	"rest_clickhouse/internal/infrastructure/http"
-	httpControllers "rest_clickhouse/internal/infrastructure/interfaces"
+	goods_service "rest_clickhouse/internal/infrastructure/http"
 	"rest_clickhouse/internal/infrastructure/queue"
-	natsClient "rest_clickhouse/internal/infrastructure/queue/nats"
+	nats_client "rest_clickhouse/internal/infrastructure/queue/nats"
 	postgres "rest_clickhouse/pkg/db"
 	"rest_clickhouse/pkg/logger"
 	"rest_clickhouse/pkg/logger/zerolog"
@@ -21,8 +21,8 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func ProvideHTTPServer(config *configs.Config, goodsController httpControllers.GoodsController, logger logger.Logger) http.HTTPServer {
-	return http.NewEchoHTTPServer(config.HttpServer.Port, goodsController, logger)
+func ProvideHTTPServer(config *configs.Config, goodsService goods_service.GoodsService, logger logger.Logger) http.HTTPServer {
+	return http.NewEchoHTTPServer(config.HttpServer.Port, goodsService, logger)
 }
 
 func ProvidePostgres(ctx context.Context, cnf *configs.Config, logger logger.Logger) (*postgres.DB, func(), error) {
@@ -58,9 +58,9 @@ func ProvideQueue(cnf *configs.Config) (queue.PubSub, error) {
 		return nil, err
 	}
 
-	natsClient := natsClient.NewNatsClient(nc)
+	nats_client := nats_client.NewNatsClient(nc)
 
-	return natsClient, nil
+	return nats_client, nil
 }
 
 func ProvideClickhouse(cnf *configs.Config) *sql.DB {

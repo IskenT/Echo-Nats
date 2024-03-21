@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"rest_clickhouse/internal/infrastructure/usecase/repository"
 	"rest_clickhouse/pkg/logger"
 )
@@ -33,12 +34,12 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 	ctx := context.Background()
 	tx, err := r.clickHouseConn.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("error beginning transaction: %w", err)
 	}
 
 	defer func() {
 		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
-			r.logger.ErrorF("rollback error")
+			r.logger.ErrorF("rollback error: %v", err)
 		}
 	}()
 
@@ -54,16 +55,16 @@ func (r *EventsRepository) Create(eventModel *repository.EventsModel) error {
 			event.Removed,
 			event.EventTime)
 		if err != nil {
-			return err
+			return fmt.Errorf("error executing query: %w", err)
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return fmt.Errorf("error committing transaction: %w", err)
 	}
 
 	// Очищаем список eventModels после успешного коммита.
 	r.eventModels = r.eventModels[:0]
 
-	return err
+	return nil
 }

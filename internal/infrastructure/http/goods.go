@@ -1,7 +1,8 @@
-package httpControllers
+package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"rest_clickhouse/internal/api"
 	repository2 "rest_clickhouse/internal/infrastructure/repository"
@@ -12,28 +13,27 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GoodsController interface {
+type GoodsService interface {
 	HandleCreateGood(c echo.Context) error
 	HandleGetGood(ctx echo.Context) error
 	HandleRemoveGood(ctx echo.Context) error
 	HandleUpdateGoods(ctx echo.Context) error
 }
 
-type goodsController struct {
+type goodsService struct {
 	goodsInteractor interactors.GoodsInteractor
 	logger          logger.Logger
 }
 
-func NewGoodsController(goodsInteractor interactors.GoodsInteractor, logger logger.Logger) GoodsController {
-	return &goodsController{
+func NewGoodsService(goodsInteractor interactors.GoodsInteractor, logger logger.Logger) GoodsService {
+	return &goodsService{
 		goodsInteractor: goodsInteractor,
 		logger:          logger,
 	}
 }
 
-func (c *goodsController) HandleCreateGood(ctx echo.Context) error {
+func (c *goodsService) HandleCreateGood(ctx echo.Context) error {
 	good := new(api.Good)
-
 	projectId, err := strconv.Atoi(ctx.Param("projectId"))
 	if err != nil {
 		return ctx.String(http.StatusBadRequest, "invalid url params")
@@ -52,6 +52,7 @@ func (c *goodsController) HandleCreateGood(ctx echo.Context) error {
 	}
 
 	if err != nil {
+		fmt.Printf("error on create good: %w", err)
 		return ctx.String(http.StatusInternalServerError, "internal error")
 	}
 
@@ -59,8 +60,7 @@ func (c *goodsController) HandleCreateGood(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, response)
 }
 
-func (c *goodsController) HandleGetGood(ctx echo.Context) error {
-
+func (c *goodsService) HandleGetGood(ctx echo.Context) error {
 	limit, err := strconv.Atoi(ctx.Param("limit"))
 	if err != nil {
 		return ctx.String(http.StatusBadRequest, "Invalid limit")
@@ -81,7 +81,7 @@ func (c *goodsController) HandleGetGood(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, goodsList)
 }
 
-func (c *goodsController) HandleRemoveGood(ctx echo.Context) error {
+func (c *goodsService) HandleRemoveGood(ctx echo.Context) error {
 	good := new(api.Good)
 
 	id, err := strconv.Atoi(ctx.Param("id"))
@@ -111,9 +111,8 @@ func (c *goodsController) HandleRemoveGood(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-func (c *goodsController) HandleUpdateGoods(ctx echo.Context) error {
+func (c *goodsService) HandleUpdateGoods(ctx echo.Context) error {
 	good := new(api.Good)
-
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		return ctx.String(http.StatusBadRequest, "invalid url params")

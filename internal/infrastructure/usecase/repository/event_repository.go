@@ -3,12 +3,12 @@ package repository
 import "time"
 
 type EventsModel struct {
-	Id          int
-	ProjectId   int
-	Name        string
-	Description string
-	Priority    int
-	Removed     bool
+	Id          int    `json:"id" db:"id"`
+	ProjectId   int    `json:"projectId" db:"project_id"`
+	Name        string `json:"name" db:"name"`
+	Description string `json:"description" db:"description"`
+	Priority    int    `json:"priority" db:"priority"`
+	Removed     bool   `json:"removed" db:"removed"`
 	EventTime   time.Time
 }
 
