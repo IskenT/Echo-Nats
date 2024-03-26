@@ -11,7 +11,7 @@
 ![Simply the best ;)](https://img.shields.io/badge/simply-the%20best%20%3B%29-orange)
 
 # Echo-Nats
-Тестовое задание от Hezzl.com
+
 ## О проекте
 - Проект создан на Golang, Postgres, Clickhouse, Nats, Redis
 - Описаны модели данных и миграции
